@@ -34,7 +34,7 @@ const main = async () => {
     // console.log("Limit Data", limitData);
 
     // get By Id
-    const documentId = newsData[3]._id.toString();
+    const documentId = newsData[3]._id.toString(); // convert from object ID to string
     const byId = await circulationRepo.getById(documentId);
     assert.deepStrictEqual(byId, newsData[3]);
     console.log("By Id", byId);

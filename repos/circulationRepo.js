@@ -54,6 +54,7 @@ function circulationRepo() {
 
         const item = await db
           .collection(collectionName)
+          // convert from string to Object ID using ObjectID()
           .findOne({ _id: ObjectID(id) });
         resolve(item);
         client.close();
