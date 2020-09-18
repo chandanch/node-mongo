@@ -19,8 +19,21 @@ const main = async () => {
     // get Data
     const newsData = await circulationRepo.get();
     assert.strictEqual(newsData.length, circulationData.length);
-    console.log(newsData.length, circulationData.length);
+    // console.log(newsData.length, circulationData.length);
+
+    // filter Data
+    const filterData = await circulationRepo.get({
+      Newspaper: newsData[2].Newspaper,
+    });
+    assert.deepStrictEqual(filterData[0], newsData[2]);
+    // console.log(filterData);
+
+    //limit Data
+    const limitData = await circulationRepo.get({}, 3);
+    assert.strictEqual(limitData.length, 3);
+    console.log("Limit Data", limitData);
   } catch (error) {
+    console.log(error);
   } finally {
     // get admin db instance
     const admin = client.db(dbName).admin();
@@ -31,7 +44,7 @@ const main = async () => {
     await client.db(dbName).dropDatabase();
 
     // get the list of databases
-    console.log(await admin.listDatabases());
+    console.log("DB List", await admin.listDatabases());
 
     client.close();
   }
