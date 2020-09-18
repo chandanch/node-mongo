@@ -1,8 +1,9 @@
-const { MongoClient } = require("mongodb");
+const { MongoClient, ObjectID } = require("mongodb");
 
 function circulationRepo() {
   const url = "mongodb://localhost:27017";
   const dbName = "circulation";
+  const collectionName = "newspapers";
 
   function loadData(data) {
     return new Promise(async (resolve, reject) => {
@@ -44,7 +45,25 @@ function circulationRepo() {
     });
   }
 
-  return { loadData, get };
+  function getById(id) {
+    return new Promise(async (resolve, reject) => {
+      const client = new MongoClient(url, { useUnifiedTopology: true });
+      try {
+        await client.connect();
+        const db = client.db(dbName);
+
+        const item = await db
+          .collection(collectionName)
+          .findOne({ _id: ObjectID(id) });
+        resolve(item);
+        client.close();
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  return { loadData, get, getById };
 }
 
 const tester = () => {};

@@ -31,7 +31,13 @@ const main = async () => {
     //limit Data
     const limitData = await circulationRepo.get({}, 3);
     assert.strictEqual(limitData.length, 3);
-    console.log("Limit Data", limitData);
+    // console.log("Limit Data", limitData);
+
+    // get By Id
+    const documentId = newsData[3]._id.toString();
+    const byId = await circulationRepo.getById(documentId);
+    assert.deepStrictEqual(byId, newsData[3]);
+    console.log("By Id", byId);
   } catch (error) {
     console.log(error);
   } finally {
