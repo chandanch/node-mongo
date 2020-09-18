@@ -1,4 +1,6 @@
-const MongoClient = require("mongodb").MongoClient;
+const assert = require("assert");
+const { MongoClient } = require("mongodb");
+
 const circulationRepo = require("./repos/circulationRepo");
 const circulationData = require("./circulation.json");
 
@@ -6,15 +8,33 @@ const url = "mongodb://localhost:27017";
 const dbName = "circulation";
 
 const main = async () => {
-  const insertResults = await circulationRepo.loadData(circulationData);
-  console.log(insertResults.insertedCount, insertResults.ops);
+  const client = new MongoClient(url, { useUnifiedTopology: true });
+  await client.connect();
 
-  // get admin db instance
-  //   const admin = client.db(dbName).admin();
-  // get mongodb server status
-  //   console.log(await admin.serverStatus());
-  // get the list of databases
-  console.log(await admin.listDatabases());
+  try {
+    const insertResults = await circulationRepo.loadData(circulationData);
+    // console.log(insertResults.insertedCount, insertResults.ops);
+    assert.strictEqual(circulationData.length, insertResults.insertedCount);
+
+    // get Data
+    const newsData = await circulationRepo.get();
+    assert.strictEqual(newsData.length, circulationData.length);
+    console.log(newsData.length, circulationData.length);
+  } catch (error) {
+  } finally {
+    // get admin db instance
+    const admin = client.db(dbName).admin();
+    // get mongodb server status
+    //   console.log(await admin.serverStatus());'
+
+    // drop database
+    await client.db(dbName).dropDatabase();
+
+    // get the list of databases
+    console.log(await admin.listDatabases());
+
+    client.close();
+  }
 };
 
 main();
