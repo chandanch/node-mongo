@@ -64,7 +64,22 @@ function circulationRepo() {
     });
   }
 
-  return { loadData, get, getById };
+  function add(item) {
+    return new Promise(async (resolve, reject) => {
+      const client = new MongoClient(url, { useUnifiedTopology: true });
+      try {
+        await client.connect();
+        const db = client.db(dbName);
+        const addedItem = await db.collection(collectionName).insertOne(item);
+        resolve(addedItem.ops[0]);
+        client.close();
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  return { loadData, get, getById, add };
 }
 
 const tester = () => {};

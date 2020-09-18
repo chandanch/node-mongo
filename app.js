@@ -37,7 +37,25 @@ const main = async () => {
     const documentId = newsData[3]._id.toString(); // convert from object ID to string
     const byId = await circulationRepo.getById(documentId);
     assert.deepStrictEqual(byId, newsData[3]);
-    console.log("By Id", byId);
+    // console.log("By Id", byId);
+
+    // add new data
+    const newItem = {
+      Newspaper: "Chandio Post",
+      "Daily Circulation, 2004": 70034,
+      "Daily Circulation, 2013": 74767,
+      "Change in Daily Circulation, 2004-2013": 38,
+      "Pulitzer Prize Winners and Finalists, 1990-2003": 0,
+      "Pulitzer Prize Winners and Finalists, 2004-2014": 1,
+      "Pulitzer Prize Winners and Finalists, 1990-2014": 0,
+    };
+    const addedItem = await circulationRepo.add(newItem);
+    assert(addedItem._id);
+    console.log("Added Item", addedItem);
+
+    const addItemQuery = await circulationRepo.getById(addedItem._id);
+    assert.deepStrictEqual(addItemQuery, newItem);
+    // console.log("added Item Query", addItemQuery);
   } catch (error) {
     console.log(error);
   } finally {
