@@ -79,7 +79,128 @@ function circulationRepo() {
     });
   }
 
-  return { loadData, get, getById, add };
+  function update(id, item) {
+    return new Promise(async (resolve, reject) => {
+      const client = new MongoClient(url, { useUnifiedTopology: true });
+      try {
+        await client.connect();
+        const db = client.db(dbName);
+        const updatedItem = await db
+          .collection(collectionName)
+          .findOneAndReplace({ _id: ObjectID(id) }, item, {
+            returnOriginal: false,
+          });
+        resolve(updatedItem.value);
+        client.close();
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  function remove(id) {
+    return new Promise(async (resolve, reject) => {
+      const client = new MongoClient(url, { useUnifiedTopology: true });
+      try {
+        await client.connect();
+        const db = client.db(dbName);
+        const removedItem = await db
+          .collection(collectionName)
+          .deleteOne({ _id: ObjectID(id) });
+        resolve(removedItem.deletedCount === 1);
+        client.close();
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  function averageFinalists() {
+    return new Promise(async (resolve, reject) => {
+      const client = new MongoClient(url, { useUnifiedTopology: true });
+      try {
+        await client.connect();
+        const db = client.db(dbName);
+        // aggregate pipeline does multiple tasks
+        const average = await db
+          .collection(collectionName)
+          .aggregate([
+            // group by id
+            {
+              $group: {
+                _id: null,
+                avgFinalists: {
+                  // average by a specific column using $
+                  $avg: "$Pulitzer Prize Winners and Finalists, 1990-2014",
+                },
+              },
+            },
+          ])
+          .toArray();
+
+        resolve(average[0].avgFinalists);
+        client.close();
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  function averageFinalistsByChange() {
+    return new Promise(async (resolve, reject) => {
+      const client = new MongoClient(url, { useUnifiedTopology: true });
+      try {
+        await client.connect();
+        const db = client.db(dbName);
+        // aggregate pipeline does multiple tasks
+        const average = await db
+          .collection(collectionName)
+          .aggregate([
+            {
+              $project: {
+                Newspaper: 1,
+                "Pulitzer Prize Winners and Finalists, 1990-2014": 1,
+                "Change in Daily Circulation, 2004-2013": 1,
+                overallChange: {
+                  $cond: {
+                    if: {
+                      $gte: ["$Change in Daily Circulation, 2004-2013", 0],
+                    },
+                    then: "positive",
+                    else: "negative",
+                  },
+                },
+              },
+            },
+            {
+              $group: {
+                _id: "$overallChange",
+                avgFinalists: {
+                  $avg: "$Pulitzer Prize Winners and Finalists, 1990-2014",
+                },
+              },
+            },
+          ])
+          .toArray();
+
+        resolve(average);
+        client.close();
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  return {
+    loadData,
+    get,
+    getById,
+    add,
+    update,
+    remove,
+    averageFinalists,
+    averageFinalistsByChange,
+  };
 }
 
 const tester = () => {};

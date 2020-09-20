@@ -51,11 +51,44 @@ const main = async () => {
     };
     const addedItem = await circulationRepo.add(newItem);
     assert(addedItem._id);
-    console.log("Added Item", addedItem);
+    // console.log("Added Item", addedItem);
 
+    // check for added Item
     const addItemQuery = await circulationRepo.getById(addedItem._id);
     assert.deepStrictEqual(addItemQuery, newItem);
     // console.log("added Item Query", addItemQuery);
+
+    // update Item
+    const updatedItem = await circulationRepo.update(addedItem._id, {
+      Newspaper: "Chandio Daily News",
+      "Daily Circulation, 2004": 70034,
+      "Daily Circulation, 2013": 74767,
+      "Change in Daily Circulation, 2004-2013": 3,
+      "Pulitzer Prize Winners and Finalists, 1990-2003": 0,
+      "Pulitzer Prize Winners and Finalists, 2004-2014": 1,
+      "Pulitzer Prize Winners and Finalists, 1990-2014": 0,
+    });
+
+    // check if Item is updated
+    const updateItemQuery = await circulationRepo.getById(addedItem._id);
+    assert.strictEqual(updateItemQuery.Newspaper, "Chandio Daily News");
+    // console.log("Updated Item3", updateItemQuery);
+
+    // remove Item
+    const removed = await circulationRepo.remove(addedItem._id);
+    assert(removed);
+
+    // check if item is deleted
+    const deleteItemQuery = await circulationRepo.getById(addedItem._id);
+    assert.strictEqual(deleteItemQuery, null);
+
+    // get average finalists
+    const averageFinalists = await circulationRepo.averageFinalists();
+    console.log("Average Finalists", averageFinalists);
+
+    // get average finalists by circulation change
+    const averageFinalistsByChange = await circulationRepo.averageFinalistsByChange();
+    console.log("Average Finalists", averageFinalistsByChange);
   } catch (error) {
     console.log(error);
   } finally {
@@ -68,7 +101,7 @@ const main = async () => {
     await client.db(dbName).dropDatabase();
 
     // get the list of databases
-    console.log("DB List", await admin.listDatabases());
+    // console.log("DB List", await admin.listDatabases());
 
     client.close();
   }
